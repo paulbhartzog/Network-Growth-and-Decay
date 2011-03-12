@@ -1,3 +1,17 @@
+turtles-own
+[
+  explored?
+]
+
+globals
+[
+  component-size          ;; number of turtles explored so far in the current component
+  giant-component-size    ;; number of turtles in the giant component
+  giant-start-node        ;; node from where we started exploring the giant component
+  biggest-component
+  step
+]
+
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Setup Procedures ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -19,6 +33,8 @@ to go
   ask links [ set color gray ]
   make-node find-partner         ;; find partner & use it as attachment
                                  ;; point for new node
+  find-biggest-components
+  color-giant-component
   tick
   if layout? [ layout ]
   if plot? [ do-plotting ]
@@ -27,10 +43,59 @@ end
 to decay
   ask links [ set color gray ]
   ;; remove a link at random
-  ask one-of turtles with [any? link-neighbors] [ ask my-links [ die ] ]
+  if count links > 0 [
+    ask one-of turtles with [any? link-neighbors] [ ask my-links [ die ] ]
+  ]
+  set step step + 1
+  find-biggest-components
+  color-giant-component
   tick
   if layout? [ layout ]
   if plot? [ do-plotting ]
+  plot-decay
+end
+
+;; to find all the connected components in the network, their sizes and starting turtles
+to find-biggest-components
+  ask turtles [ set explored? false ]
+  ;; keep exploring till all turtles get explored
+  set biggest-component 0
+  loop
+  [
+    ;; pick a node that has not yet been explored
+    let start one-of turtles with [ not explored? ]
+    if start = nobody [ stop ]
+    ;; reset the number of turtles found to 0
+    ;; this variable is updated each time we explore an
+    ;; unexplored node.
+    set component-size 0
+    ;; at this stage, we recolor everything to light gray
+    ask start [ explore (gray + 2) ]
+    ;; the explore procedure updates the component-size variable.
+    ;; so check, have we found a new giant component?
+    if component-size > biggest-component
+    [
+      set biggest-component component-size
+      set giant-start-node start
+    ]
+    set giant-component-size biggest-component
+  ]
+end
+
+;; Finds all turtles reachable from this node (and recolors them)
+to explore [new-color]  ;; node procedure
+  if explored? [ stop ]
+  set explored? true
+  set component-size component-size + 1
+  ;; color the node
+  set color new-color
+  ask link-neighbors [ explore new-color ]
+end
+
+;; color the giant component red
+to color-giant-component
+  ask turtles [ set explored? false ]
+  ask giant-start-node [ explore red ]
 end
 
 ;; used for creating a new node
@@ -98,8 +163,19 @@ to do-plotting ;; plotting procedure
       [ plotxy log degree 10
                log (count matches) 10 ]
     set degree degree + 1
-  ]
+  ]  
 end
+
+to plot-decay
+  ;; giant component plot
+  set-current-plot "Giant Component"
+  set-current-plot-pen "size"
+  ;; We multiply by 2 because every edge should be counted twice while calculating,
+  ;; the average, since an edge connects two turtles.
+  ;; We divide by the node count to normalize the y axis to a 0 to 1 range.
+  plotxy step giant-component-size
+end
+
 
 ;;;;;;;;;;;;;;
 ;;; Layout ;;;
@@ -353,6 +429,45 @@ NIL
 NIL
 NIL
 NIL
+
+MONITOR
+824
+142
+996
+187
+giant-component-size
+giant-component-size
+0
+1
+11
+
+PLOT
+824
+199
+1205
+496
+Giant Component
+steps
+number of nodes
+0.0
+10.0
+0.0
+10.0
+true
+false
+PENS
+"size" 1.0 0 -16777216 true
+
+MONITOR
+823
+75
+959
+120
+biggest-component
+biggest-component
+0
+1
+11
 
 @#$#@#$#@
 WHAT IS IT?
