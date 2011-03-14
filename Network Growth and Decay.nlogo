@@ -41,6 +41,7 @@ to go
 end
 
 to decay
+  if count links < 2 [ stop ]
   ask links [ set color gray ]
   ;; remove a link at random
   if count links > 0 [
@@ -858,7 +859,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 4.1.2
+NetLogo 4.1
 @#$#@#$#@
 set layout? false
 set plot? false
