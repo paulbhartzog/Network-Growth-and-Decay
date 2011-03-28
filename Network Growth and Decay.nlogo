@@ -8,7 +8,7 @@ globals
   component-size          ;; number of turtles explored so far in the current component
   giant-component-size    ;; number of turtles in the giant component
   giant-start-node        ;; node from where we started exploring the giant component
-  biggest-component
+  biggest-component       ;; a variable used to track the biggest component so far
   step
 ]
 
@@ -223,8 +223,7 @@ to-report limit-magnitude [number limit]
 end
 
 
-; Copyright 2005 Uri Wilensky. All rights reserved.
-; The full copyright notice is in the Information tab.
+; Licensing information is in the Information tab.
 @#$#@#$#@
 GRAPHICS-WINDOW
 345
@@ -459,26 +458,21 @@ false
 PENS
 "size" 1.0 0 -16777216 true
 
-MONITOR
-823
-75
-959
-120
-biggest-component
-biggest-component
-0
-1
-11
-
 @#$#@#$#@
 WHAT IS IT?
 -----------
-In some networks, a few "hubs" have lots of connections, while everybody else only has a few.  This model shows one way such networks can arise.
 
-Such networks can be found in a surprisingly large range of real world situations, ranging from the connections between websites to the collaborations between actors.
+This exploratory model is based off of:
+- Wilensky, U. (2005).  NetLogo Preferential Attachment model.  http://ccl.northwestern.edu/netlogo/models/PreferentialAttachment
+
+Wilensky's model produces the initial network.
+Future Forward Institute added the functionality to decay the network.
+
+In some networks, a few "hubs" have lots of connections, while everybody else only has a few.  This model shows one way such networks can arise.
 
 This model generates these networks by a process of "preferential attachment", in which new network members prefer to make a connection to the more popular existing members.
 
+This model then decays the network by a process of "random removal" of nodes along with their links.
 
 HOW IT WORKS
 ------------
@@ -486,10 +480,14 @@ The model starts with two nodes connected by an edge.
 
 At each step, a new node is added.  A new node picks an existing node to connect to randomly, but with some bias.  More specifically, a node's chance of being selected is directly proportional to the number of connections it already has, or its "degree." This is the mechanism which is called "preferential attachment."
 
+The decay function removes nodes at random from the network, including all of the links associated with that node. This demonstrates how quickly large sections of the network can collapse.
 
 HOW TO USE IT
 -------------
 Pressing the GO ONCE button adds one new node.  To continuously add nodes, press GO.
+Pressing the DECAY ONCE button removes one node and its links.  To continuously decay
+the network , press DECAY.
+
 
 The LAYOUT? switch controls whether or not the layout procedure is run.  This procedure attempts to move the nodes around to make the structure of the network easier to see.
 
@@ -501,37 +499,23 @@ If you want the model to run faster, you can turn off the LAYOUT? and PLOT? swit
 
 If you have LAYOUT? switched off, and then want the network to have a more appealing layout, press the REDO-LAYOUT button which will run the layout-step procedure until you press the button again. You can press REDO-LAYOUT at any time even if you had LAYOUT? switched on and it will try to make the network easier to see.
 
+
 THINGS TO NOTICE
 ----------------
 The networks that result from running this model are often called "scale-free" or "power law" networks. These are networks in which the distribution of the number of connections of each node is not a normal distribution -- instead it follows what is a called a power law distribution.  Power law distributions are different from normal distributions in that they do not have a peak at the average, and they are more likely to contain extreme values (see Barabasi 2002 for a further description of the frequency and significance of scale-free networks).  Barabasi originally described this mechanism for creating networks, but there are other mechanisms of creating scale-free networks and so the networks created by the mechanism implemented in this model are referred to as Barabasi scale-free networks.
 
 You can see the degree distribution of the network in this model by looking at the plots. The top plot is a histogram of the degree of each node.  The bottom plot shows the same data, but both axes are on a logarithmic scale.  When degree distribution follows a power law, it appears as a straight line on the log-log plot.  One simple way to think about power laws is that if there is one node with a degree distribution of 1000, then there will be ten nodes with a degree distribution of 100, and 100 nodes with a degree distribution of 10.
 
+When you decay this network by random removal of nodes with their links, most of the nodes removed are likely to have few links.  Consequently, the network suffers little decay.  Removal of nodes with high-degree, i.e. 'hubs', will cause more decay to the network.  Eventually the network suffers enough decay that large numbers of nodes become isolated from each other.
 
-THINGS TO TRY
--------------
-Let the model run a little while.  How many nodes are "hubs", that is, have many connections?  How many have only a few?  Does some low degree node ever become a hub?  How often?
+This is a non-linear effect, not a trend, and is unpredictable.
 
-Turn off the LAYOUT? switch and freeze the view to speed up the model, then allow a large network to form.  What is the shape of the histogram in the top plot?  What do you see in log-log plot? Notice that the log-log plot is only a straight line for a limited range of values.  Why is this?  Does the degree to which the log-log plot resembles a straight line grow as you add more node to the network?
-
-
-EXTENDING THE MODEL
--------------------
-Assign an additional attribute to each node.  Make the probability of attachment depend on this new attribute as well as on degree.  (A bias slider could control how much the attribute influences the decision.)
-
-Can the layout algorithm be improved?  Perhaps nodes from different hubs could repel each other more strongly than nodes from the same hub, in order to encourage the hubs to be physically separate in the layout.
+The graph of the 'Giant Component' shows how quickly total collapse can occur.
 
 
-NETWORK CONCEPTS
+NETWORK LAYOUT
 ----------------
 There are many ways to graphically display networks.  This model uses a common "spring" method where the movement of a node at each time step is the net result of "spring" forces that pulls connected nodes together and repulsion forces that push all the nodes away from each other.  This code is in the layout-step procedure. You can force this code to execute any time by pressing the REDO LAYOUT button, and pressing it again when you are happy with the layout.
-
-
-NETLOGO FEATURES
-----------------
-Both nodes and edges are turtles.  Edge turtles have the "line" shape.  The edge turtle's SIZE variable is used to make the edge be the right length.
-
-Lists are used heavily in this model.  Each node maintains a list of its neighboring nodes.
 
 
 RELATED MODELS
@@ -559,21 +543,27 @@ W. Brian Arthur, "Urban Systems and Historical Path-Dependence", Chapt. 4 in Urb
 
 HOW TO CITE
 -----------
-If you mention this model in an academic publication, we ask that you include these citations for the model itself and for the NetLogo software:
+If you mention this model in an academic publication, Future Forward Institute asks that you include these citations for the model itself and for the NetLogo software:
+Future Forward Institute
+https://github.com/paulbhartzog/Network-Growth-and-Decay
+
+If you mention this model in an academic publication, Wilensky asks that you include these citations for the model itself and for the NetLogo software:
 - Wilensky, U. (2005).  NetLogo Preferential Attachment model.  http://ccl.northwestern.edu/netlogo/models/PreferentialAttachment.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
 - Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
 In other publications, please use:
 - Copyright 2005 Uri Wilensky. All rights reserved. See http://ccl.northwestern.edu/netlogo/models/PreferentialAttachment for terms of use.
 
 
 COPYRIGHT NOTICE
 ----------------
-Copyright 2005 Uri Wilensky. All rights reserved.
+Creative Commons BY-SA 2011 Future Forward Institute. Some rights reserved.
+This work is licensed under a Creative Commons Attribution-Share Alike 3.0 Unported License.
+
+Url Wilensky's original code Copyright 2005 Uri Wilensky. All rights reserved.
 
 Permission to use, modify or redistribute this model is hereby granted, provided that both of the following requirements are followed:
-a) this copyright notice is included.
-b) this model will not be redistributed for profit without permission from Uri Wilensky. Contact Uri Wilensky for appropriate licenses for redistribution for profit.
+a) these copyright notices are included.
+b) Url Wilensky's original code may not be redistributed for profit without permission from Uri Wilensky. Contact Uri Wilensky for appropriate licenses for redistribution for profit.
 
 @#$#@#$#@
 default
@@ -859,7 +849,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 4.1
+NetLogo 4.1.2
 @#$#@#$#@
 set layout? false
 set plot? false
